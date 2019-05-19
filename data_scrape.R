@@ -44,3 +44,10 @@ cnt_lookup <- data.frame(acro = c("at", "be-bru", "be-vlg", "be-wal", "bg",
                                  "UK - GB", "UK - NI"))
 
 
+# Download wikipedia party memberships
+library(rvest)    
+wikiURL <-"https://en.wikipedia.org/wiki/List_of_current_Members_of_the_European_Parliament"
+EU_groups <- html_table(html_nodes(xml2::read_html(wikiURL), "table")[1])[[1]]
+
+
+
