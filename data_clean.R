@@ -71,8 +71,42 @@ data_reduce[(party.y == "Independent") | (party.x == "Independent"),
             EU_group := "Non-attached Members"]
 data_reduce[distance > 13, EU_group := NA]
 data_reduce[is.na(EU_group)]
+data_reduce[, Sample.Size := as.numeric(Sample.Size)]
 
 # Add full country names
 data_countries <- merge(data_reduce, cnt_lookup, by.x = ".id", by.y = "acro")
+
+# Add weeks
+data_countries[, week := as.Date(paste0("01-", month(Fieldwork.End), 
+                                        "-", year(Fieldwork.End)), format = "%d-%m-%Y"), 
+               by = .(cnt, party.x)]
+
+# Summarise all the polls over time
+data_summ <- copy(data_countries)[, .(poll = (Sample.Size * value) / sum(Sample.Size)), 
+                                  by = .(cnt, EU_group, week)][order(cnt, week, poll)]
+data_ts <- copy(data_summ)[, lapply(.SD, ts), by = .(cnt, EU_group, week), .SDcols = "poll"]
+
+
+# Colour palette
+palette_cols <- c("Group of the European People's Party (Christian Democrats)" = "grey", 
+  "Group of the Progressive Alliance of Socialists and Democrats in the European Parliament" = "red", 
+  "Europe of Nations and Freedom Group" = "brown", 
+  "European Conservatives and Reformists Group" = "blue",
+  "Group of the Greens/European Free Alliance" = "green",
+  "Europe of Freedom and Direct Democracy Group" = "turquoise",
+  "Group of the Alliance of Liberals and Democrats for Europe" = "yellow",
+  "Confederal Group of the European United Left - Nordic Green Left" = "pink",
+  "NA" = "black")
+
+library(ggplot2)
+ggplot(data_countries, aes(x = Fieldwork.End, y = value, 
+                           group = EU_group, colour = EU_group))+
+  geom_smooth(se = FALSE)+
+  scale_colour_manual(values = palette_cols,
+                      guide = guide_legend(nrow = 4))+
+  theme(legend.position="bottom")+
+  facet_wrap(~cnt)
+
+
 
 

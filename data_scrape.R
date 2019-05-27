@@ -23,7 +23,7 @@ for (i in 1:length(links)){
 # Load the data from those links
 data_load <- list()
 for (i in 1:length(data_links)) {
-  data_load[[names(data_links)[i]]] <- read.csv(data_links[[i]])
+  data_load[[names(data_links)[i]]] <- read.csv(data_links[[i]], row.names = NULL)
 }
 
 
